@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EletricCalc Mushim</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --primary: #6366f1; --secondary: #06b6d4; --text: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .calc-card { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; }
+        button { width: 100%; padding: 12px; background: var(--primary); border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 5px; }
+        .btn-paralelo { background: var(--secondary); }
+        .res { margin-top: 15px; padding: 15px; background: #312e81; border-radius: 8px; text-align: center; font-weight: bold; display: none; }
+        nav { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <button onclick="showSection('base')">Leis</button>
+        <button onclick="showSection('res')">Resistores</button>
+        <button onclick="showSection('cap')">Capacitor</button>
+        <button onclick="showSection('ind')">Indutor</button>
+        <button onclick="showSection('cores')">Cores</button>
+    </nav>
+
+    <div id="base" class="section active calc-card">
+        <h3>Leis Elétricas</h3>
+        <input type="number" id="o_r" placeholder="Resistência (Ω)">
+        <input type="number" id="o_i" placeholder="Corrente (A)">
+        <button onclick="calcOhm()">Lei de Ohm (U=R*I)</button>
+        <button onclick="calcPot()" style="background:#f59e0b">Potência (P=U*I)</button>
+        <div id="res_base" class="res"></div>
+    </div>
+
+    <div id="res" class="section calc-card">
+        <h3>Associação de Resistores</h3>
+        <input type="number" id="r1" placeholder="R1 (Ω)">
+        <input type="number" id="r2" placeholder="R2 (Ω)">
+        <button onclick="calcResSerie()">Série (R1+R2)</button>
+        <button class="btn-paralelo" onclick="calcResParalelo()">Paralelo (R1*R2)/(R1+R2)</button>
+        <div id="res_res" class="res"></div>
+    </div>
+
+    <div id="cap" class="section calc-card">
+        <h3>Capacitor (Série)</h3>
+        <input type="number" id="c1" placeholder="C1 (µF)">
+        <input type="number" id="c2" placeholder="C2 (µF)">
+        <button onclick="calcCapSerie()">Calcular (Ct = (C1*C2)/(C1+C2))</button>
+        <div id="res_cap" class="res"></div>
+    </div>
+
+    <div id="ind" class="section calc-card">
+        <h3>Indutor (Série)</h3>
+        <input type="number" id="l1" placeholder="L1 (mH)">
+        <input type="number" id="l2" placeholder="L2 (mH)">
+        <button onclick="calcIndSerie()">Calcular (Lt = L1 + L2)</button>
+        <div id="res_ind" class="res"></div>
+    </div>
+
+    <div id="cores" class="section calc-card">
+        <h3>Resistor (4 Faixas)</h3>
+        <select id="f1"><option value="0">Preto (0)</option><option value="1">Marrom (1)</option><option value="2">Vermelho (2)</option><option value="3">Laranja (3)</option><option value="4">Amarelo (4)</option></select>
+        <select id="f2"><option value="0">Preto (0)</option><option value="1">Marrom (1)</option><option value="2">Vermelho (2)</option><option value="3">Laranja (3)</option><option value="4">Amarelo (4)</option></select>
+        <select id="mult"><option value="1">Preto (x1)</option><option value="10">Marrom (x10)</option><option value="100">Vermelho (x100)</option><option value="1000">Laranja (x1k)</option></select>
+        <button onclick="calcCores()">Identificar Valor</button>
+        <div id="res_cores" class="res"></div>
+    </div>
+
+    <script>
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+        function show(id, val) {
+            let el = document.getElementById(id);
+            el.style.display = "block";
+            el.innerHTML = val;
+        }
+
+        const calcOhm = () => show('res_base', "Tensão: " + (document.getElementById('o_r').value * document.getElementById('o_i').value) + " V");
+        const calcPot = () => show('res_base', "Potência: " + (document.getElementById('o_r').value * document.getElementById('o_i').value * document.getElementById('o_i').value) + " W");
+        const calcResSerie = () => show('res_res', "Req: " + (parseFloat(document.getElementById('r1').value) + parseFloat(document.getElementById('r2').value)) + " Ω");
+        const calcResParalelo = () => {
+            let r1 = parseFloat(document.getElementById('r1').value);
+            let r2 = parseFloat(document.getElementById('r2').value);
+            show('res_res', "Req: " + ((r1 * r2) / (r1 + r2)).toFixed(2) + " Ω");
+        };
+        const calcCapSerie = () => {
+            let c1 = parseFloat(document.getElementById('c1').value);
+            let c2 = parseFloat(document.getElementById('c2').value);
+            show('res_cap', "Ct: " + ((c1 * c2) / (c1 + c2)).toFixed(2) + " µF");
+        };
+        const calcIndSerie = () => show('res_ind', "Lt: " + (parseFloat(document.getElementById('l1').value) + parseFloat(document.getElementById('l2').value)) + " mH");
+        const calcCores = () => {
+            let val = (parseInt(document.getElementById('f1').value) * 10 + parseInt(document.getElementById('f2').value)) * parseInt(document.getElementById('mult').value);
+            show('res_cores', "Valor: " + val + " Ω");
+        };
+       
+    </script><footer>By dev_Edvaldo Vantitia</footer> 
+    
+    </body>
+</html>
